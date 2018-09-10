@@ -116,3 +116,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+Output Data:
+*-mailinglist.txt
