@@ -1,32 +1,27 @@
-'''
 
-PRESS F5 TO RUN
-
-If you run in to problems email mrallinson@gmail.com
-repo  = https://github.com/mattallinson/Mailman
-
-please first run pip install -r requirements.txt in your terminal
-
-This script uses Beautiful Soup and Requests 
-to pull data off the KCL Mailman server. 
-
-
-'''
-
+import messages
+import os
 import requests
 from bs4 import BeautifulSoup
 
 URL = "https://mailman.kcl.ac.uk/mailman/"
 ADMIN = "admin/"
 ROSTER = "roster/"
+OUTPUT_FOLDER = "../output/"
+
+def makeoutput(path):	
+	if os.path.exists(path):
+		pass
+	else:
+		os.mkdir(path)
 
 def mailinglist_cookies(mailinglist, password): # this opens up the admin page, enters the password, and saves the returned cookie to be passed to the next request
 	try:
 		cookie_request = requests.post(URL+ ADMIN + mailinglist, data = {'adminpw':password})
 		cookie_request.raise_for_status()
-		return cookie_request.cookies # raises exception if the password is incorrect (or any other 401 error)
-	except:
-		print("password error")
+		return cookie_request.cookies 
+	except: # raises exception if the password is incorrect (or any other 4XX error)
+		print(messages.error_message)
 		return None
 
 def make_roster(mailinglist, cookies): # takes the cookie from the cookie request and requests the roster
@@ -40,11 +35,14 @@ def make_roster(mailinglist, cookies): # takes the cookie from the cookie reques
 	return roster
 
 def main():
-	mailinglist = input("What's the name of the mailing list you want to download?> ")
+	
+	makeoutput(OUTPUT_FOLDER)	
+	print(messages.welcome_message)	
 
 	while True:		
+		mailinglist = input("What's the name of the mailing list you want to download?> ")
 		password = input("What is the list admin password?> ")
-		filename = mailinglist + '-mailinglist.txt'
+		filename = OUTPUT_FOLDER + mailinglist + '-mailinglist.txt'
 
 		cookies = mailinglist_cookies(mailinglist, password)
 		if cookies != None:
@@ -56,7 +54,8 @@ def main():
 				with open(filename, 'a') as output:
 					output.write(email + ';\n')
 			
-			print("Saved", len(roster), "email addresses in", filename)
+			print("Saved", len(roster), "email addresses in", os.path.abspath(filename))
+			input("press enter to close")
 			break		
 
 if __name__ == '__main__':
